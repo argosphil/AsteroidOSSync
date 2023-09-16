@@ -58,6 +58,7 @@ import org.asteroidos.sync.asteroid.IAsteroidDevice;
 import org.asteroidos.sync.fragments.AppListFragment;
 import org.asteroidos.sync.fragments.DeviceDetailFragment;
 import org.asteroidos.sync.fragments.DeviceListFragment;
+import org.asteroidos.sync.fragments.ShellFragment;
 import org.asteroidos.sync.fragments.WeatherSettingsFragment;
 import org.asteroidos.sync.services.SynchronizationService;
 import org.asteroidos.sync.utils.AppInfo;
@@ -78,7 +79,8 @@ import static android.os.ParcelUuid.fromString;
 public class MainActivity extends AppCompatActivity implements DeviceListFragment.OnDefaultDeviceSelectedListener,
         DeviceListFragment.OnScanRequestedListener, DeviceDetailFragment.OnDefaultDeviceUnselectedListener,
         DeviceDetailFragment.OnConnectRequestedListener, DeviceDetailFragment.OnAppSettingsClickedListener,
-        DeviceDetailFragment.OnWeatherSettingsClickedListener, DeviceDetailFragment.OnUpdateListener {
+        DeviceDetailFragment.OnWeatherSettingsClickedListener, DeviceDetailFragment.OnUpdateListener,
+        DeviceDetailFragment.OnShellPromptRequestedListener {
 
     public static final String PREFS_NAME = "MainPreferences";
     public static final String PREFS_DEFAULT_MAC_ADDR = "defaultMacAddress";
@@ -128,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     private Fragment mPreviousFragment;
     private BluetoothLeScannerCompat mScanner;
     private SharedPreferences mPrefs;
+    private ShellFragment mShellFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -345,6 +348,30 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
             ab.setDisplayHomeAsUpEnabled(true);
     }
 
+    public void onShellPromptRequested() {
+        Fragment f = new ShellFragment(this);
+
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        if (mDetailFragment != null) {
+            mPreviousFragment = mDetailFragment;
+            mDetailFragment = null;
+        }
+        if (mListFragment != null) {
+            mPreviousFragment = mListFragment;
+            mListFragment = null;
+        }
+        mShellFragment = (ShellFragment) f;
+        ft.replace(R.id.flContainer, f);
+        ft.addToBackStack(null);
+        ft.commit();
+
+        setTitle(getString(R.string.shell_prompt));
+        ActionBar ab = getSupportActionBar();
+        if (ab != null)
+            ab.setDisplayHomeAsUpEnabled(true);
+    }
+
     private void handleSetLocalName(String name) {
         if (mDetailFragment != null)
             mDetailFragment.setLocalName(name);
@@ -368,6 +395,13 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
     private void handleSetBatteryPercentage(int percentage) {
         if (mDetailFragment != null)
             mDetailFragment.setBatteryPercentage(percentage);
+    }
+
+    private void handleShellOutput(byte[] byteArray)
+    {
+        if (mShellFragment != null) {
+            mShellFragment.handleShellOutput(byteArray);
+        }
     }
 
     @Override
@@ -469,6 +503,9 @@ public class MainActivity extends AppCompatActivity implements DeviceListFragmen
                     break;
                 case SynchronizationService.MSG_SET_BATTERY_PERCENTAGE:
                     mActivity.handleSetBatteryPercentage(msg.arg1);
+                    break;
+                case SynchronizationService.MSG_SHELL_OUTPUT:
+                    mActivity.handleShellOutput((byte [])msg.obj);
                     break;
                 default:
                     super.handleMessage(msg);
