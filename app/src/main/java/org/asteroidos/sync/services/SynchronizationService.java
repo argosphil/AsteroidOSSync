@@ -50,6 +50,7 @@ import org.asteroidos.sync.connectivity.IServiceCallback;
 import org.asteroidos.sync.connectivity.MediaService;
 import org.asteroidos.sync.connectivity.NotificationService;
 import org.asteroidos.sync.connectivity.ScreenshotService;
+import org.asteroidos.sync.connectivity.ShellService;
 import org.asteroidos.sync.connectivity.SilentModeService;
 import org.asteroidos.sync.connectivity.TimeService;
 import org.asteroidos.sync.connectivity.WeatherService;
@@ -73,6 +74,7 @@ public class SynchronizationService extends Service implements IAsteroidDevice, 
     public static final int MSG_SET_DEVICE = 7;
     public static final int MSG_UPDATE = 8;
     public static final int MSG_UNSET_DEVICE = 9;
+    public static final int MSG_SHELL_OUTPUT = 10;
 
     private static final String NOTIFICATION_CHANNEL_ID = "synchronizationservice_channel_id_01";
     final Messenger mMessenger = new Messenger(new SynchronizationHandler(this));
@@ -284,6 +286,7 @@ public class SynchronizationService extends Service implements IAsteroidDevice, 
             registerBleService(new NotificationService(getApplicationContext(), this));
             registerBleService(new WeatherService(getApplicationContext(), this));
             registerBleService(new ScreenshotService(getApplicationContext(), this));
+            registerBleService(new ShellService(getApplicationContext(), this));
             registerBleService(new TimeService(getApplicationContext(), this));
         }
 
@@ -365,6 +368,16 @@ public class SynchronizationService extends Service implements IAsteroidDevice, 
         try {
             if (replyTo != null)
                 replyTo.send(Message.obtain(null, MSG_SET_BATTERY_PERCENTAGE, batteryPercentage, 0));
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void handleShellOutput(byte[] bytes)
+    {
+        try {
+            if (replyTo != null)
+                replyTo.send(Message.obtain(null, MSG_SHELL_OUTPUT, bytes));
         } catch (RemoteException e) {
             e.printStackTrace();
         }
