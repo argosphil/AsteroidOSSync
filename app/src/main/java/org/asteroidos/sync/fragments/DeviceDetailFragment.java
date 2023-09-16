@@ -68,6 +68,7 @@ public class DeviceDetailFragment extends Fragment {
     private DeviceDetailFragment.OnAppSettingsClickedListener mAppSettingsListener;
     private DeviceDetailFragment.OnWeatherSettingsClickedListener mWeatherSettingsListener;
     private DeviceDetailFragment.OnUpdateListener mUpdateListener;
+    private DeviceDetailFragment.OnShellPromptRequestedListener mShellPromptListener;
 
 
     @Override
@@ -130,6 +131,10 @@ public class DeviceDetailFragment extends Fragment {
         CardView screenshotCard = view.findViewById(R.id.card_view3);
         screenshotCard.setOnClickListener(view1 -> requireActivity().sendBroadcast(new Intent("org.asteroidos.sync.SCREENSHOT_REQUEST_LISTENER")));
 
+        CardView shellCard = view.findViewById(R.id.card_view8);
+        shellCard.setOnClickListener(shellCardView -> {
+            mShellPromptListener.onShellPromptRequested();
+        });
         CardView notifSettCard = view.findViewById(R.id.card_view4);
         notifSettCard.setOnClickListener(notifSettCardView -> mAppSettingsListener.onAppSettingsClicked());
 
@@ -253,6 +258,12 @@ public class DeviceDetailFragment extends Fragment {
             throw new ClassCastException(context
                     + " does not implement DeviceDetailFragment.OnWeatherSettingsClickedListener");
 
+        if (context instanceof DeviceDetailFragment.OnShellPromptRequestedListener)
+            mShellPromptListener = (DeviceDetailFragment.OnShellPromptRequestedListener) context;
+        else
+            throw new ClassCastException(context
+                    + " does not implement DeviceDetailFragment.OnShellPromptRequestedListener");
+
         if (context instanceof DeviceDetailFragment.OnUpdateListener)
             mUpdateListener = (DeviceDetailFragment.OnUpdateListener) context;
         else
@@ -282,4 +293,7 @@ public class DeviceDetailFragment extends Fragment {
         void onUpdateRequested();
     }
 
+    public interface OnShellPromptRequestedListener {
+        void onShellPromptRequested();
+    }
 }
