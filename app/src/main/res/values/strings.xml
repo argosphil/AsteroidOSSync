@@ -77,4 +77,6 @@
     <string name="location_disabled_title">Location disabled</string>
     <string name="intro_slide6_title">Phone Notifications</string>
     <string name="intro_slide6_subtitle">To show the current connection state of the watch.</string>
+    <string name="run_shell_command">Run shell command</string>
+    <string name="shell_prompt">Shell Prompt</string>
 </resources>
